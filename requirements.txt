@@ -1,0 +1,6 @@
+hikari[speedups]~=2.0.0.dev101
+hikari-tanjun~=2.0.0a3
+aiosqlite~=0.17.0
+apscheduler~=3.7.0
+psutil~=5.8.0
+uvloop~=0.16.0; sys_platform != "nt"

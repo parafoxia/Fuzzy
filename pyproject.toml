@@ -1,0 +1,3 @@
+[tool.black]
+extend-exclude = "fuzzy/__init__.py"
+line-length = 79
