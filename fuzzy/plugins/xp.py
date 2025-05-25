@@ -130,3 +130,24 @@ class Leaderboard:
                 for i, (user_id, xp) in enumerate(leaderboard)
             ),
         )
+
+
+@plugin.include
+@crescent.command(name="nextlevel", description="Fetches a user's next level.")
+class NextLevel:
+    user = crescent.option(
+        hikari.User,
+        "The user to fetch the next level for.",
+        default=None,
+    )
+
+    async def callback(self, ctx: crescent.Context) -> None:
+        user = self.user or ctx.user
+        cursor = cxn.cursor()
+        cursor.execute("SELECT xp FROM users WHERE id = ?", (user.id,))
+        xp = res[0] if (res := cursor.fetchone()) else 0
+        lvl = level(xp)
+        remaining_xp = (lvl + 1) ** 2 - xp
+        await ctx.respond(
+            f"{user.mention} needs **{remaining_xp:,}** XP to reach level **{lvl + 1:,}**.",
+        )
