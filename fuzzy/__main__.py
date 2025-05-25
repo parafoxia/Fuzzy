@@ -20,7 +20,7 @@ if __name__ == "__main__":
     init_db()
     bot.run(
         activity=hikari.Activity(
-            name="you!",
+            name="you",
             type=hikari.ActivityType.WATCHING,
         )
     )
