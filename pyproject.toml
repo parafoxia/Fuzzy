@@ -1,7 +1,7 @@
 [project]
 name = "fuzzy"
 version = "7.0.0"
-description = "The iron-booted robotic resident of The Tsunami Zone. "
+description = "The iron-booted robotic resident of The Tsunami Zone."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
