@@ -18,7 +18,7 @@ CHANNEL_IDS = {
 
 
 def level(xp: int) -> int:
-    return int((xp + 1) ** 0.5)
+    return int(xp**0.5)
 
 
 @plugin.include
@@ -80,21 +80,25 @@ async def add_xp(event: hikari.MessageCreateEvent) -> None:
     last_message = res[0] if (res := cursor.fetchone()) else 0
 
     if (ts := event.message.timestamp.timestamp()) - last_message < 60:
-        _log.info("Not enough time passed since last message")
         return
-
-    _log.info("Adding XP to %s", event.author_id)
 
     cursor.execute(
         """
         INSERT INTO users (id, xp, last_message) VALUES (:author_id, 1, :ts)
         ON CONFLICT (id) DO UPDATE SET xp = xp + 1, last_message = :ts
+        RETURNING xp
         """,
         {
             "author_id": event.author_id,
             "ts": ts,
         },
     )
+    xp = cursor.fetchone()[0]
+    if (lvl := level(xp)) > level(xp - 1):
+        await event.message.respond(
+            f"{event.author.mention} is making a splash and is now level **{lvl:,}**!",
+        )
+
     cxn.commit()
 
 
@@ -151,3 +155,28 @@ class NextLevel:
         await ctx.respond(
             f"{user.mention} needs **{remaining_xp:,}** XP to reach level **{lvl + 1:,}**.",
         )
+
+
+@plugin.include
+@crescent.command(
+    name="addxp",
+    description="Adds XP to a user.",
+    default_member_permissions=hikari.Permissions.ADMINISTRATOR,
+)
+class AddXP:
+    user = crescent.option(
+        hikari.User,
+        "The user to add XP to.",
+    )
+    xp = crescent.option(
+        int,
+        "The amount of XP to add.",
+    )
+
+    async def callback(self, ctx: crescent.Context) -> None:
+        cursor = cxn.cursor()
+        cursor.execute(
+            "UPDATE users SET xp = xp + ? WHERE id = ?", (self.xp, self.user.id)
+        )
+        cxn.commit()
+        await ctx.respond(f"Added **{self.xp:,}** XP to {self.user.mention}.")
