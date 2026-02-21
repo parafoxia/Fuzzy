@@ -1,0 +1,10 @@
+services:
+  fuzzy:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:

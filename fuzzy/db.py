@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 """
 
-cxn = sqlite3.connect("db.sqlite3")
+cxn = sqlite3.connect("data/db.sqlite3")
 
 
 def init_db() -> None:
