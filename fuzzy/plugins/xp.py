@@ -1,3 +1,4 @@
+import asyncio
 import datetime as dt
 import logging
 from collections import defaultdict
@@ -27,24 +28,24 @@ async def apply_missed_xp(event: hikari.StartedEvent) -> None:
     cursor = cxn.cursor()
     cursor.execute("SELECT last_message FROM users ORDER BY last_message DESC LIMIT 1")
     last_message = res[0] if (res := cursor.fetchone()) else 0
+    after = dt.datetime.fromtimestamp(last_message) if last_message > 0 else 0
 
-    _log.info("Applying missed XP (from %s)", last_message)
+    _log.info("Applying missed XP (from %s)", after)
 
     xp_mapping: dict[int, int] = defaultdict(int)
     msg_mapping: dict[int, float] = defaultdict(lambda: 0)
 
     for channel_id in CHANNEL_IDS:
-        messages = plugin.app.rest.fetch_messages(
-            channel_id,
-            after=dt.datetime.fromtimestamp(last_message),
-        )
+        messages = plugin.app.rest.fetch_messages(channel_id, after=after).chunk(100)
 
-        async for message in messages:
-            if (ts := message.timestamp.timestamp()) - msg_mapping[
-                message.author.id
-            ] > 60:
-                xp_mapping[message.author.id] += 1
-                msg_mapping[message.author.id] = ts
+        async for chunk in messages:
+            for message in chunk:
+                if (ts := message.timestamp.timestamp()) - msg_mapping[
+                    message.author.id
+                ] > 60:
+                    xp_mapping[message.author.id] += 1
+                    msg_mapping[message.author.id] = ts
+            await asyncio.sleep(1)
 
     cursor.executemany(
         """

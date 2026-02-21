@@ -18,9 +18,4 @@ if __name__ == "__main__":
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
     init_db()
-    bot.run(
-        activity=hikari.Activity(
-            name="you",
-            type=hikari.ActivityType.WATCHING,
-        )
-    )
+    bot.run(activity=hikari.Activity(name="Yoshi? Hardly know 'er."))
